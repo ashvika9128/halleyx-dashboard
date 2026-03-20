@@ -19,16 +19,19 @@ export default function OrdersPage() {
   const [editOrder, setEditOrder] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
-  const menuRef = useRef(null);
 
   const handleSubmit = async (data) => {
-    if (editOrder) {
-      await updateOrder.mutateAsync({ id: editOrder._id, ...data });
-    } else {
-      await createOrder.mutateAsync(data);
+    try {
+      if (editOrder) {
+        await updateOrder.mutateAsync({ id: editOrder._id, ...data });
+      } else {
+        await createOrder.mutateAsync(data);
+      }
+      setShowForm(false);
+      setEditOrder(null);
+    } catch (err) {
+      alert(JSON.stringify(err.response?.data || err.message));
     }
-    setShowForm(false);
-    setEditOrder(null);
   };
 
   const handleContextMenu = (e, order) => {
@@ -89,10 +92,8 @@ export default function OrdersPage() {
         </div>
       )}
 
-      {/* Context Menu */}
       {contextMenu && (
         <div
-          ref={menuRef}
           style={{ top: contextMenu.y, left: contextMenu.x }}
           className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-36"
           onClick={(e) => e.stopPropagation()}
@@ -101,13 +102,13 @@ export default function OrdersPage() {
             className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
             onClick={() => { setEditOrder(contextMenu.order); setShowForm(true); closeContext(); }}
           >
-            ‚úèÔ∏è Edit
+            Edit
           </button>
           <button
             className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50"
             onClick={() => { setConfirmId(contextMenu.order._id); closeContext(); }}
           >
-            Ì∑ëÔ∏è Delete
+            Delete
           </button>
         </div>
       )}
@@ -122,7 +123,7 @@ export default function OrdersPage() {
 
       {confirmId && (
         <ConfirmDialog
-          message="Are you sure you want to delete this order? This action cannot be undone."
+          message="Are you sure you want to delete this order?"
           onConfirm={() => { deleteOrder.mutate(confirmId); setConfirmId(null); }}
           onCancel={() => setConfirmId(null)}
         />
